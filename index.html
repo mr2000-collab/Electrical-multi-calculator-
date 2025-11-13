@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Electrical Calculator</title>
+  <style>
+    :root {
+      --primary: #1976d2;
+      --primary-dark: #115293;
+      --accent: #ff9800;
+      --background: #f5f5f5;
+      --surface: #ffffff;
+      --on-surface: #333333;
+      --border-radius: 50px;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background: var(--background);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: var(--on-surface);
+    }
+
+    .calculator {
+      background: var(--surface);
+      padding: 28px;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      width: 540px;
+      max-width: 95%;
+      position: relative;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    /* Switch Tabs */
+    .switch-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+      background: #ffe0b2;
+      border-radius: 50px;
+      padding: 4px;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .switch-option {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      border-radius: 50px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      color: #555;
+    }
+
+    .switch-option.active {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    /* Pills */
+    .pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .pill {
+      padding: 10px 18px;
+      border-radius: 50px;
+      background: #eee;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #555;
+      transition: all 0.3s ease;
+    }
+
+    .pill.active {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+    }
+
+    label {
+      font-size: 14px;
+      margin: 10px 0 6px;
+      display: block;
+      color: #555;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 18px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: background 0.3s;
+      margin-top: 4px;
+    }
+
+    button:hover {
+      background: var(--primary-dark);
+    }
+
+    .result {
+      margin-top: 16px;
+      padding: 20px;
+      border-radius: 14px;
+      background: #e3f2fd;
+      font-size: 18px;
+      font-weight: 700;
+      color: #0d47a1;
+      text-align: center;
+      box-shadow: var(--shadow);
+      white-space: pre-line;
+      opacity: 0;
+      transition: opacity 0.8s ease-in-out;
+    }
+
+    .result.show {
+      opacity: 1;
+    }
+
+    /* Smooth fade + slide transition */
+    .calc-section {
+      opacity: 0;
+      transform: translateY(20px);
+      position: absolute;
+      top: 120px;
+      left: 0;
+      width: 100%;
+      transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+      pointer-events: none;
+    }
+
+    .calc-section.active {
+      opacity: 1;
+      transform: translateY(0);
+      position: relative;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <h2>Electrical Multi-Calculator</h2>
+
+    <!-- Switch -->
+    <div class="switch-container">
+      <div id="switchPC" class="switch-option active" onclick="switchCalculator('powerCurrent')">Power–Current</div>
+      <div id="switchVR" class="switch-option" onclick="switchCalculator('voltageRange')">Voltage Range</div>
+    </div>
+
+    <!-- Power–Current Calculator -->
+    <div id="powerCurrent" class="calc-section active">
+      <label>Conversion Mode</label>
+      <div class="pill-group" id="mode-group">
+        <div class="pill active" data-value="p2i">Power → Current</div>
+        <div class="pill" data-value="i2p">Current → Power</div>
+      </div>
+
+      <label>Phase</label>
+      <div class="pill-group" id="phase-group">
+        <div class="pill" data-value="1">Single Phase</div>
+        <div class="pill active" data-value="3">Three Phase</div>
+      </div>
+
+      <label id="value-label">Enter Power</label>
+      <input type="number" id="value" placeholder="Enter power value" oninput="clearResult('resultPC')">
+
+      <div id="unit-section">
+        <label>Power Unit</label>
+        <div class="pill-group" id="unit-group">
+          <div class="pill active" data-value="kVA">kVA</div>
+          <div class="pill" data-value="MVA">MVA</div>
+          <div class="pill" data-value="kW">kW</div>
+        </div>
+      </div>
+
+      <label>Voltage Level</label>
+      <div class="pill-group" id="voltage-group"></div>
+
+      <div id="pf-section" style="display:none;">
+        <label>Power Factor (0–1, default = 1)</label>
+        <input type="number" id="pf" placeholder="Enter Power Factor" step="0.01" min="0" max="1" oninput="clearResult('resultPC')">
+      </div>
+
+      <button onclick="calculatePC()">Calculate</button>
+      <div class="result" id="resultPC">Result will appear here</div>
+    </div>
+
+    <!-- Voltage Range Calculator -->
+    <div id="voltageRange" class="calc-section">
+      <label>Nominal Voltage</label>
+      <div class="pill-group" id="voltageLevel-group">
+        <div class="pill active" data-value="132,1000,12.5,10">132 kV</div>
+        <div class="pill" data-value="33,1000,9,6">33 kV</div>
+        <div class="pill" data-value="11,1000,9,6">11 kV</div>
+        <div class="pill" data-value="400,1,6,6">400 V</div>
+        <div class="pill" data-value="230,1,6,6">230 V</div>
+      </div>
+
+      <button onclick="calculateRange()">Calculate</button>
+      <div class="result" id="resultVR">Result will appear here</div>
+    </div>
+  </div>
+
+  <script>
+    // Utility for pills
+    function setupPills(groupId, callback) {
+      const group = document.getElementById(groupId);
+      group.querySelectorAll(".pill").forEach(pill => {
+        pill.addEventListener("click", () => {
+          group.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+          pill.classList.add("active");
+          callback(pill.dataset.value);
+        });
+      });
+    }
+
+    function switchCalculator(id) {
+      document.querySelectorAll(".calc-section").forEach(sec => sec.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      document.getElementById("switchPC").classList.toggle("active", id === "powerCurrent");
+      document.getElementById("switchVR").classList.toggle("active", id === "voltageRange");
+    }
+
+    function clearResult(id) {
+      const box = document.getElementById(id);
+      box.classList.remove("show");
+      box.textContent = "Result will appear here";
+    }
+
+    // Defaults
+    let mode = "p2i";
+    let phase = 3;
+    let unit = "kVA";
+    let voltage = 33000;
+    let voltageLevel = "132,1000,12.5,10";
+
+    // Voltage level options
+    const singlePhaseVoltages = [{ label: "230 V", value: 230 }];
+    const threePhaseVoltages = [
+      { label: "400 V", value: 400 },
+      { label: "415 V", value: 415 },
+      { label: "11 kV", value: 11000 },
+      { label: "33 kV", value: 33000 },
+      { label: "132 kV", value: 132000 },
+    ];
+
+    function renderVoltageOptions() {
+      const container = document.getElementById("voltage-group");
+      container.innerHTML = "";
+      const voltages = phase === 1 ? singlePhaseVoltages : threePhaseVoltages;
+      voltages.forEach((v, i) => {
+        const pill = document.createElement("div");
+        pill.className = "pill" + (i === 0 ? " active" : "");
+        pill.textContent = v.label;
+        pill.dataset.value = v.value;
+        pill.addEventListener("click", () => {
+          container.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+          pill.classList.add("active");
+          voltage = v.value;
+          clearResult("resultPC");
+        });
+        container.appendChild(pill);
+      });
+      voltage = voltages[0].value;
+    }
+
+    // Initial render
+    renderVoltageOptions();
+
+    // Setup pills
+    setupPills("mode-group", v => { mode = v; updateInputLabel(); clearResult("resultPC"); toggleUnitSection(); });
+    setupPills("phase-group", v => { phase = parseInt(v); renderVoltageOptions(); clearResult("resultPC"); });
+    setupPills("unit-group", v => { unit = v; clearResult("resultPC"); togglePFSection(); });
+    setupPills("voltageLevel-group", v => { voltageLevel = v; clearResult("resultVR"); });
+
+    function toggleUnitSection() {
+      document.getElementById("unit-section").style.display = (mode === "p2i") ? "block" : "none";
+    }
+
+    function togglePFSection() {
+      document.getElementById("pf-section").style.display = (unit === "kW") ? "block" : "none";
+    }
+
+    function updateInputLabel() {
+      const label = document.getElementById("value-label");
+      label.textContent = (mode === "p2i") ? "Enter Power" : "Enter Current";
+      document.getElementById("value").placeholder = (mode === "p2i") ? "Enter power value" : "Enter current value";
+    }
+
+    function formatPowerVA(power) {
+      if (power >= 1000000) return (power / 1000000).toFixed(3) + " MVA";
+      else if (power >= 1000) return (power / 1000).toFixed(3) + " kVA";
+      else return power.toFixed(3) + " VA";
+    }
+
+    function calculatePC() {
+      const value = parseFloat(document.getElementById('value').value);
+      const pf = parseFloat(document.getElementById('pf')?.value) || 1;
+      const resultBox = document.getElementById('resultPC');
+
+      if (isNaN(value) || value <= 0 || voltage <= 0) {
+        resultBox.textContent = "⚠️ Please enter valid positive input.";
+        resultBox.classList.add("show");
+        return;
+      }
+
+      if (unit === "kW" && (pf <= 0 || pf > 1)) {
+        resultBox.textContent = "⚠️ Power Factor must be between 0 and 1.";
+        resultBox.classList.add("show");
+        return;
+      }
+
+      const multiplier = (phase === 3) ? Math.sqrt(3) : 1;
+      let output = "";
+
+      if (mode === "p2i") {
+        let powerVA;
+        if (unit === "kVA") powerVA = value * 1000;
+        else if (unit === "MVA") powerVA = value * 1000000;
+        else if (unit === "kW") powerVA = value * 1000 / pf;
+
+        let current = powerVA / (multiplier * voltage);
+        output = `Current: ${current.toFixed(3)} A`;
+        if (unit === "kW") output += `\n(PF = ${pf})`;
+      } else {
+        let powerVA = value * multiplier * voltage;
+        output = `Power: ${formatPowerVA(powerVA)}`;
+        if (voltage < 1000) output += `\nPower (Watts): ${(value * multiplier * voltage).toFixed(3)} W`;
+      }
+
+      resultBox.textContent = output;
+      resultBox.classList.add("show");
+    }
+
+    function calculateRange() {
+      const selection = voltageLevel.split(",");
+      const nominal = parseFloat(selection[0]);
+      const scale = parseFloat(selection[1]);
+      const plusPct = parseFloat(selection[2]);
+      const minusPct = parseFloat(selection[3]);
+
+      const min = nominal * (1 - plusPct / 100);
+      const max = nominal * (1 + minusPct / 100);
+      const unitTxt = (scale === 1000) ? "kV" : "V";
+
+      const resultBox = document.getElementById('resultVR');
+      resultBox.textContent = `Nominal Voltage: ${nominal} ${unitTxt}
+Maximum Voltage: ${max.toFixed(2)} ${unitTxt}
+Minimum Voltage: ${min.toFixed(2)} ${unitTxt}
+Allowed Range: +${minusPct}% / -${plusPct}%`;
+      resultBox.classList.add("show");
+    }
+  </script>
+</body>
+</html>
